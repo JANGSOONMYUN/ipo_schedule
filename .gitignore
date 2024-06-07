@@ -1,2 +1,5 @@
 ipo_schedule.csv
 ipo_schedule_with_links.csv
+*.json
+
+!config(template).json

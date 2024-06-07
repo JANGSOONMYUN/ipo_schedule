@@ -1,0 +1,7 @@
+{
+    "calendar_id": "primary",
+    "event_id": "YOUR_EVENT_ID",
+    "client_secret_file": "credentials.json",
+    "token_file": "token.json",
+    "api": "dwqdqwdqw"
+}
