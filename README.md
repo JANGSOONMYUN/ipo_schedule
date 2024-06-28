@@ -1,5 +1,6 @@
 ## To do
 - [x] Crawling IPO list
-- [ ] Getting the detail information of each IPO
-- [ ] Connecting to the Google Calendar
-- [ ] Adding or updating IPO schedule to the Google Calendar
+- [x] Getting the detail information of each IPO
+- [x] Connecting to the Google Calendar
+- [x] Adding or updating IPO schedule to the Google Calendar
+- [] Getting authority from the Google API without web browser

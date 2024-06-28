@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime, timedelta
+import os
+
+IPO_PAGE_URL = 'https://www.38.co.kr'
 
 def get_ipo_info():
     # 38커뮤니케이션 공모주 페이지 URL
@@ -58,24 +61,42 @@ def get_ipo_info():
 
 
 # 날짜 범위를 처리하는 함수
-def is_within_two_weeks(date_range):
-    # 오늘 날짜와 2주 전 날짜 계산
-    today = datetime.today()
-    two_weeks_ago = today - timedelta(weeks=2)
-    
+def get_ipo_date(date_range):
     start_date_str, end_date_str = date_range.split('~')
-    start_date = datetime.strptime(start_date_str.strip(), '%Y.%m.%d')
+    start_date = datetime.strptime(start_date_str.strip().replace('.', '-'), '%Y-%m-%d')
     
     current_year = start_date.year
-    end_date_str = end_date_str.strip()
-    date_format_size = len(end_date_str.split('.'))
+    end_date_str = end_date_str.strip().replace('.', '-')
+    date_format_size = len(end_date_str.split('-'))
     if date_format_size == 2:
-        end_date_str = f'{current_year}.{end_date_str}'
-    end_date = datetime.strptime(end_date_str, '%Y.%m.%d')
+        end_date_str = f'{current_year}-{end_date_str}'
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    return start_date, end_date
+
+# 날짜 범위를 처리하는 함수
+def is_within_weeks(date_range, weeks=4):
+    # 오늘 날짜와 2주 전 날짜 계산
+    today = datetime.today()
+    two_weeks_ago = today - timedelta(weeks=weeks)
+    
+    start_date, end_date = get_ipo_date(date_range)
     
     return (start_date >= two_weeks_ago) or (end_date >= two_weeks_ago)
 
-
+# 날짜 범위를 처리하는 함수
+def from_today(date_range):
+    # 오늘 날짜와 2주 전 날짜 계산
+    today = datetime.today()    
+    start_date, end_date = get_ipo_date(date_range)
+    # Convert start_date and end_date to date
+    today = today.date()
+    start_date = start_date.date()
+    end_date = end_date.date()
+    
+    # print(start_date, '~', end_date, today, (start_date >= today), (end_date >= today))
+    
+    return (start_date >= today) or (end_date >= today)
+            
 # 특정 페이지에서 상장일을 가져오는 함수
 def get_public_date(page_url):
     response = requests.get(page_url)
@@ -88,17 +109,49 @@ def get_public_date(page_url):
         return public_date_td.find_next_sibling('td').text.strip()
     return None
 
+def get_ipo_list():
+    # Get the current date
+    current_date = datetime.now()
+    # Format the date as a string in the desired format
+    date_string = current_date.strftime("%Y-%m-%d")
+    print(date_string)
 
-df = get_ipo_info()
-# '청약일'이 날짜 범위인 데이터를 필터링
-df_filtered = df[df['공모주일정'].apply(is_within_two_weeks)]
+    ipo_csv_file_name = f'ipo_schedule_with_links_{date_string}.csv'
+    ipo_with_public_file_name = f'ipo_schedule_with_public_date_{date_string}.csv'
+    
+    
+    if os.path.exists(ipo_with_public_file_name):
+        df_filtered = pd.read_csv(ipo_with_public_file_name)
+        return df_filtered
 
-# 상장일 받아오기
-public_date = get_public_date('https://www.38.co.kr/html/fund/?o=v&no=2053&l=&page=1')
-print(public_date)
+    if os.path.exists(ipo_csv_file_name):
+        df = pd.read_csv(ipo_csv_file_name)
+    else:
+        df = get_ipo_info()
+        # 필요한 경우 CSV 파일로 저장
+        df.to_csv(ipo_csv_file_name, index=False, encoding='utf-8-sig')
+        
+    
+        
+    # '청약일'이 날짜 범위인 데이터를 필터링
+    df_filtered = df[df['공모주일정'].apply(from_today)]
+    # Add a new column with a default value
+    df_filtered['상장일'] = '-'
+
+    for index, row in df_filtered.iterrows():
+        print(row['주간사'], row['링크'])
+        
+        detail_info_url = IPO_PAGE_URL + row['링크']
+        # # 상장일 받아오기
+        public_date = get_public_date(detail_info_url)
+        
+        if public_date is not None:
+            df_filtered.at[index, '상장일'] = public_date
+
+    df_filtered.to_csv(ipo_with_public_file_name, index=False, encoding='utf-8-sig')
+
+    return df_filtered
 
 
-# 데이터프레임 출력
-print(df_filtered)
-# 필요한 경우 CSV 파일로 저장
-df.to_csv('ipo_schedule_with_links.csv', index=False, encoding='utf-8-sig')
+if __name__ == '__main__':
+    get_ipo_list()
