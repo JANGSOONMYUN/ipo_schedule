@@ -1,4 +1,7 @@
 import requests
+import urllib3
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime, timedelta
@@ -6,12 +9,28 @@ import os
 
 IPO_PAGE_URL = 'https://www.38.co.kr'
 
+class CustomHttpAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        context = create_urllib3_context()
+        context.set_ciphers("DEFAULT:@SECLEVEL=1")  # Allow smaller key sizes
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
+
+    def build_response(self, req, resp):
+        return super().build_response(req, resp)
+
+# Use the custom adapter with requests
+session = requests.Session()
+session.mount("https://", CustomHttpAdapter())
+
 def get_ipo_info():
     # 38커뮤니케이션 공모주 페이지 URL
     url = 'https://www.38.co.kr/html/fund/?o=k'
 
     # 페이지 요청
-    response = requests.get(url)
+    # response = requests.get(url)
+    response = session.get(url)
+
     response.encoding = 'euc-kr'  # 인코딩 설정
 
     # BeautifulSoup 객체 생성
@@ -99,7 +118,8 @@ def from_today(date_range):
             
 # 특정 페이지에서 상장일을 가져오는 함수
 def get_public_date(page_url):
-    response = requests.get(page_url)
+    # response = requests.get(page_url)
+    response = session.get(page_url)
     response.encoding = 'euc-kr'
     soup = BeautifulSoup(response.text, 'html.parser')
     # soup = BeautifulSoup(response.text, 'html.parser', from_encoding='euc-kr')

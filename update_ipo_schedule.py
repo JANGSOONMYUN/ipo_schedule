@@ -2,7 +2,8 @@ import os
 import json
 import pandas as pd
 from datetime import datetime, timedelta
-
+import schedule
+import time
 from crawl_ipo_list import get_ipo_list, get_ipo_date
 from google_api import get_calendar_id, get_upcoming_events, get_event_details, update_event, delete_event, add_event
 
@@ -75,7 +76,7 @@ def test():
                 elif KEYWORD_PUBLIC in gc_ipo_name:
                     ipo_df.at[index, 'is_new_public'] = False
                     public_date = str(row['상장일']).replace('.', '-')
-                    if public_date is None or len(public_date) < 2:
+                    if public_date is None or len(public_date) < 2 or public_date == 'nan':
                         # delete the schedule
                         print('delete_event: public_date has not been decided.')
                         delete_event(ipo_calendar_id, event_id)
@@ -126,4 +127,9 @@ def test():
             
             
 if __name__ == '__main__':
-    test()
+    # Schedule the function to run every day at a specific time
+    schedule.every().day.at("10:30").do(test)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
