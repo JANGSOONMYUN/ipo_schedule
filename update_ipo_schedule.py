@@ -135,9 +135,9 @@ def test():
             
 if __name__ == '__main__':
     test()
-    # # Schedule the function to run every day at a specific time
-    # schedule.every().day.at("10:30").do(test)
+    # Schedule the function to run every day at a specific time
+    schedule.every().day.at("10:30").do(test)
 
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
