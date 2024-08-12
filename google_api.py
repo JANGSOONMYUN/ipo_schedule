@@ -11,29 +11,47 @@ from googleapiclient.discovery import build
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 # SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+
+'''
+    # 서비스 계정: 서버 간 통신에 사용되며, 수동 인증 없이 자동으로 API에 접근할 수 있습니다. 주로 백엔드 작업이나 크론 잡에 사용됩니다.
+'''
 def get_calendar_service():
-    creds = None
-    
-    # When google.auth.exceptions.RefreshError: ('invalid_scope: Bad Request' ...) token should be regenerated. To make sure, comment 
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+    SCOPES = ['https://www.googleapis.com/auth/calendar']
+    SERVICE_ACCOUNT_FILE = 'service_account_key.json'  # 다운로드된 서비스 계정 JSON 파일 경로
+
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
     service = build('calendar', 'v3', credentials=creds)
     return service
+
+'''
+    # OAuth 2.0 클라이언트 ID: 사용자가 브라우저를 통해 수동으로 인증해야 합니다. 주로 사용자가 직접 인증을 제공해야 하는 클라이언트 애플리케이션에 사용됩니다.
+'''
+# def get_calendar_service():
+#     creds = None
+    
+#     # When google.auth.exceptions.RefreshError: ('invalid_scope: Bad Request' ...) token should be regenerated. To make sure, comment 
+#     # The file token.json stores the user's access and refresh tokens, and is
+#     # created automatically when the authorization flow completes for the first
+#     # time.
+#     if os.path.exists('token.json'):
+#         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        
+#     # If there are no (valid) credentials available, let the user log in.
+#     if not creds or not creds.valid:
+#         if creds and creds.expired and creds.refresh_token:
+#             creds.refresh(Request())
+#         else:
+#             flow = InstalledAppFlow.from_client_secrets_file(
+#                 'credentials.json', SCOPES)
+#             creds = flow.run_local_server(port=0)
+#         # Save the credentials for the next run
+#         with open('token.json', 'w') as token:
+#             token.write(creds.to_json())
+#     service = build('calendar', 'v3', credentials=creds)
+#     return service
 
 def list_calendars():
     service = get_calendar_service()

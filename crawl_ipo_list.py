@@ -169,6 +169,7 @@ def get_ipo_list():
             df_filtered.at[index, '상장일'] = public_date
 
     df_filtered.to_csv(ipo_with_public_file_name, index=False, encoding='utf-8-sig')
+    print('get_ipo_list DONE')
 
     return df_filtered
 

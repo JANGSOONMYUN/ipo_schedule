@@ -38,6 +38,7 @@ event_detail_format = {
 }
 
 def test():
+    today = datetime.today()
     ipo_calendar_id = get_calendar_id()
     events = get_upcoming_events(ipo_calendar_id)
     # print(events)
@@ -58,6 +59,12 @@ def test():
         detail['end']['dateTime']
         ipo_found = False
         for index, row in ipo_df.iterrows():
+            ipo_start_date, ipo_end_date = get_ipo_date(row['공모주일정'])
+            
+            # check if expired
+            if ipo_start_date < today:
+                ipo_df.at[index, 'is_new_ipo'] = False
+                
             if row['종목명'] in gc_ipo_name:
                 ipo_found = True
                 print(gc_ipo_name)
@@ -127,9 +134,10 @@ def test():
             
             
 if __name__ == '__main__':
-    # Schedule the function to run every day at a specific time
-    schedule.every().day.at("10:30").do(test)
+    test()
+    # # Schedule the function to run every day at a specific time
+    # schedule.every().day.at("10:30").do(test)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
