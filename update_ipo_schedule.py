@@ -131,13 +131,37 @@ def test():
             
             print('add_event: new public.:', event_details['summary'], event_details['start']['dateTime'], event_details['end']['dateTime'], public_date, type(public_date))
             add_event(ipo_calendar_id, event_details)
-            
+
+from datetime import datetime, timedelta  
+def wait_until(target_time):
+    """현재 시간부터 목표 시간까지 대기하는 함수."""
+    while True:
+        now = datetime.now()
+        if now >= target_time:
+            break
+        time.sleep(10)
             
 if __name__ == '__main__':
     test()
-    # Schedule the function to run every day at a specific time
-    schedule.every().day.at("10:30").do(test)
+    # # Schedule the function to run every day at a specific time
+    # schedule.every().day.at("10:30").do(test)
+
+
+    # schedule.every().day.at("20:52").do(test)
+
+
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
+
+    run_time = datetime.combine(datetime.now(), datetime.strptime("10:30", "%H:%M").time())
+    if run_time < datetime.now():
+        # 오늘 10:30가 지나쳤으면 내일로 설정
+        run_time += timedelta(days=1)
 
     while True:
-        schedule.run_pending()
-        time.sleep(1)
+        wait_until(run_time)
+        test()
+
+        # 다음 날의 같은 시간으로 설정
+        run_time += timedelta(days=1)
