@@ -1,0 +1,8 @@
+numpy
+pandas
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+schedule
+beautifulsoup4
+certifi

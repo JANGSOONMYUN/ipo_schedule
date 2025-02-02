@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import schedule
 import time
+
 from crawl_ipo_list import get_ipo_list, get_ipo_date
 from google_api import get_calendar_id, get_upcoming_events, get_event_details, update_event, delete_event, add_event
 
@@ -19,7 +20,6 @@ PUBLIC_END_TIME = 'T10:00:00+09:00'
 ipo_df = get_ipo_list()
 ipo_df['is_new_ipo'] = True
 ipo_df['is_new_public'] = True
-
 
 
 event_detail_format = {

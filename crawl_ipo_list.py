@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime, timedelta
 import os
+import certifi
+
 
 IPO_PAGE_URL = 'https://www.38.co.kr'
 
@@ -29,7 +31,9 @@ def get_ipo_info():
 
     # 페이지 요청
     # response = requests.get(url)
-    response = session.get(url)
+    # response = session.get(url, verify=False)
+    # 최신 CA 인증서 번들 사용
+    response = session.get(url, verify=certifi.where())
 
     response.encoding = 'euc-kr'  # 인코딩 설정
 
