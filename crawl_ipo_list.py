@@ -21,11 +21,12 @@ class CustomHttpAdapter(HTTPAdapter):
     def build_response(self, req, resp):
         return super().build_response(req, resp)
 
-# Use the custom adapter with requests
-session = requests.Session()
-session.mount("https://", CustomHttpAdapter())
 
-def get_ipo_info():
+def get_ipo_info(session=None):
+    # Use the custom adapter with requests
+    if session == None:
+        session = requests.Session()
+        session.mount("https://", CustomHttpAdapter())
     # 38커뮤니케이션 공모주 페이지 URL
     url = 'https://www.38.co.kr/html/fund/?o=k'
 
@@ -121,7 +122,7 @@ def from_today(date_range):
     return (start_date >= today) or (end_date >= today)
             
 # 특정 페이지에서 상장일을 가져오는 함수
-def get_public_date(page_url):
+def get_public_date(page_url, session):
     # response = requests.get(page_url)
     response = session.get(page_url)
     response.encoding = 'euc-kr'
@@ -134,6 +135,11 @@ def get_public_date(page_url):
     return None
 
 def get_ipo_list():
+    
+    # Use the custom adapter with requests
+    session = requests.Session()
+    session.mount("https://", CustomHttpAdapter())
+    
     # Get the current date
     current_date = datetime.now()
     # Format the date as a string in the desired format
@@ -151,7 +157,7 @@ def get_ipo_list():
     if os.path.exists(ipo_csv_file_name):
         df = pd.read_csv(ipo_csv_file_name)
     else:
-        df = get_ipo_info()
+        df = get_ipo_info(session)
         # 필요한 경우 CSV 파일로 저장
         df.to_csv(ipo_csv_file_name, index=False, encoding='utf-8-sig')
         
@@ -167,7 +173,7 @@ def get_ipo_list():
         
         detail_info_url = IPO_PAGE_URL + row['링크']
         # # 상장일 받아오기
-        public_date = get_public_date(detail_info_url)
+        public_date = get_public_date(detail_info_url, session)
         
         if public_date is not None:
             df_filtered.at[index, '상장일'] = public_date
